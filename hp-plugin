@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Copyright(c) 2021
+
+
+RENK1='\033[1;31m'
+RENK2='\033[1;35m'
+RENK3='\033[1;32m'
+RENK4='\033[1;34m'
+RESET='\033[1;0m'
+
+
+MESAJ1="root kullanıcısı için şifre belirlemeden bu işleme devam etmeyiniz..."
+MESAJ2="Şifre belirlediniz mi? [E/H]: "
+MESAJ3="Lütfen sudo passwd root ile şifre belirleyerek tekrar deneyin."
+MESAJ4="Geçersiz bir tuşa bastınız. Lütfen tekrar deneyin."
+
+echo -e "$RENK1$MESAJ1$RESET\n"
+echo -e -n "$RENK2$MESAJ2$RESET"
+read cevap
+
+if [ "$cevap" == "E" ]; then
+	sudo apt install hplip -y
+	surum=$(apt-cache policy hplip | grep Kurulu | cut -d" " -f 4 | cut -d"+" -f 1)
+	url="https://developers.hp.com/sites/default/files/hplip-${surum}-plugin.run"
+	
+	dizin="/home/$USER/.hplip"
+	[ -d $dizin ] || mkdir -p $dizin
+
+	tmp="/tmp/${surum}"
+	[ -d $tmp ] || mkdir -p $tmp
+
+	[ -f "$tmp/hplip-${surum}-plugin.run" ] || wget -nc --no-check-certificate $url -P $tmp
+	[ -f "$tmp/hplip-${surum}-plugin.run.asc" ] || wget -nc --no-check-certificate $url.asc -P $tmp
+
+	hp-plugin -i --plugin="$tmp/hplip-${surum}-plugin.run"
+
+elif [ "$cevap" == "H" ]; then
+	echo -e -n "$RENK1$MESAJ3$RESET\n"
+else
+	echo -e -n "$RENK1$MESAJ4$RESET\n"
+fi
